@@ -6,12 +6,13 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/kon3gor/newbiebot/internal/models"
 	"github.com/kon3gor/selo"
 )
 
 type Repo interface {
-	GetHooks(owner string, repo string) ([]Hook, error)
-	SaveHook(h Hook) error
+	GetHooks(owner string, repo string) ([]models.Hook, error)
+	SaveHook(h models.Hook) error
 }
 
 type WebhookManager struct {
@@ -29,7 +30,12 @@ func NewManager(c Config) *WebhookManager {
 }
 
 func (m WebhookManager) Hook(owner, repo, url string) error {
-	h := Hook{owner, repo, url}
+	//note do I need sync.Pool for this?
+	h := models.Hook{
+		Owner: owner,
+		Repo:  repo,
+		URL:   url,
+	}
 	return m.repo.SaveHook(h)
 }
 
@@ -42,7 +48,7 @@ func (m WebhookManager) Broadcast(e Event) error {
 	var wg sync.WaitGroup
 	wg.Add(len(hooks))
 	for _, hook := range hooks {
-		go func(h Hook) {
+		go func(h models.Hook) {
 			defer wg.Done()
 			m.notify(h, e)
 		}(hook)
@@ -53,7 +59,7 @@ func (m WebhookManager) Broadcast(e Event) error {
 	return nil
 }
 
-func (m WebhookManager) notify(hook Hook, e Event) {
+func (m WebhookManager) notify(hook models.Hook, e Event) {
 	body, err := json.Marshal(e.Payload)
 	if err != nil {
 		panic(err) //todo: replace with channels or just ignore it since i'm a bad developer

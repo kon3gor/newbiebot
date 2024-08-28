@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/kon3gor/newbiebot/internal/github"
-	repomiddleware "github.com/kon3gor/newbiebot/internal/middleware/repo"
 	"github.com/kon3gor/newbiebot/internal/seloutil"
 	"github.com/kon3gor/newbiebot/internal/webhook"
 	"github.com/kon3gor/newbiebot/internal/ydbrepo"
@@ -25,12 +24,6 @@ func main() {
 	}
 
 	selo.
-		Unique[*ydbrepo.Repo]().
-		SetLazy(true).
-		SetFactory(ydbrepo.NewRepo).
-		Record()
-
-	selo.
 		Unique[*github.GithubClient]().
 		SetLazy(true).
 		SetFactory(seloutil.Wrap(c, github.NewClient)).
@@ -39,7 +32,7 @@ func main() {
 	selo.
 		Unique[webhook.Repo]().
 		SetLazy(true).
-		SetFactory(repomiddleware.NewProxyRepo).
+		SetFactory(webHookRepoFactory).
 		Record()
 
 	selo.
@@ -59,3 +52,8 @@ func main() {
 		fmt.Println(issue.Title)
 	}
 }
+
+func webHookRepoFactory() webhook.Repo {
+	return ydbrepo.NewRepo()
+}
+
