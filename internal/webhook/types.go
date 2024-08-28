@@ -5,3 +5,9 @@ type Hook struct {
 	Repo  string
 	URL   string
 }
+
+type Event struct {
+	Owner   string
+	Repo    string
+	Payload any
+}

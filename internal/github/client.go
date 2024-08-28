@@ -23,8 +23,8 @@ type GithubClient struct {
 	client *http.Client
 }
 
-func NewClient(c Config) GithubClient {
-	return GithubClient{
+func NewClient(c Config) *GithubClient {
+	return &GithubClient{
 		c:      c,
 		client: http.DefaultClient,
 	}
